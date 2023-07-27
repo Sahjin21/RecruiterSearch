@@ -1,0 +1,88 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+@model List<RecruiterSearch.Models.SearchResult>
+
+<div>
+    <label>Keywords:</label>
+    <input type="text" id="keywordsInput" name="keywords" />
+    <button type="button" onclick="performSearch()">Search</button>
+</div>
+<div>
+    <button type="button" onclick="appendText(' AND ')">AND</button>
+    <button type="button" onclick="appendText(' OR ')">OR</button>
+    <button type="button" onclick="appendText(' NOT ')">NOT</button>
+</div>
+<div>
+    <label>Site:</label>
+    <input type="text" id="siteOperatorInput" />
+    <button type="button" onclick="appendText(' site:' + document.getElementById('siteOperatorInput').value)">Add</button>
+</div>
+<div>
+    <label>In URL:</label>
+    <input type="text" id="inUrlOperatorInput" />
+    <button type="button" onclick="appendText(' inurl:' + document.getElementById('inUrlOperatorInput').value)">Add</button>
+</div>
+<div>
+    <label>In Title:</label>
+    <input type="text" id="inTitleOperatorInput" />
+    <button type="button" onclick="appendText(' intitle:' + document.getElementById('inTitleOperatorInput').value)">Add</button>
+</div>
+
+
+@if (Model != null && Model.Any())
+{
+    <h2>Search Results</h2>
+    <ul>
+        @foreach (var result in Model)
+        {
+            <li>
+                <h3>@result.Title</h3>
+                <p>@result.Snippet</p>
+                <a href="@result.Url" target="_blank">Read More</a>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p>No results found.</p>
+}
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Script to append operator to keywords input and trigger search -->
+<script>
+    function appendText(textToAdd) {
+        var keywordsInput = document.getElementById('keywordsInput');
+        var currentKeywords = keywordsInput.value.trim();
+        if (currentKeywords !== '') {
+            currentKeywords += ' ' + textToAdd;
+        } else {
+            currentKeywords = textToAdd;
+        }
+        keywordsInput.value = currentKeywords;
+    }
+
+    function performSearch() {
+        // Prevent the default form submission behavior
+        event.preventDefault();
+
+        var keywords = document.getElementById('keywordsInput').value;
+
+        // Make an AJAX call to the server to perform the search
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("PerformSearch", "Home")',
+            data: { keywords: keywords },
+            success: function (result) {
+                // Update the existing page content with the returned search results
+                $('#searchResultsDiv').html(result);
+            },
+            error: function () {
+                // Handle errors if any
+                $('#searchResultsDiv').html('<p>Error occurred during search.</p>');
+            }
+        });
+    }
+</script>
